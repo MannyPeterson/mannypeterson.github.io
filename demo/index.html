@@ -61,7 +61,7 @@
         $("form").submit(async function (e) {
             e.preventDefault();
             zip = $("#zip").val();
-            response = await fetch(`http://api.openweathermap.org/geo/1.0/zip?zip=${zip},US&appid=${key()}`);
+            response = await fetch(`https://api.openweathermap.org/geo/1.0/zip?zip=${zip},US&appid=${key()}`);
             data = await response.json();
             lat = data.lat;
             lon = data.lon;
