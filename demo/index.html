@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Manny Peterson's Resume REST API Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+    <script src="index.js"></script>
+    <style>
+        .vertical-center {
+            min-height: 95%;
+            min-height: 95vh;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="vertical-center">
+        <div class="container">
+            <div class="row mt-5 mb-5">
+                <div class="col-12">
+                    <img src="assets/outdoors.png" class="img-fluid">
+                </div>
+            </div>
+            <div class="row mt-5 mb-5">
+                <div class="col-4"></div>
+                <div class="col-4">
+                    <form>
+                        <div class="input-group mb-3">
+                            <input type="text" placeholder="Enter zip code for weather..." class="form-control"
+                                style="border-color: black;" id="zip">
+                            <button class="btn btn-primary" type="submit">Go</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-4"></div>
+            </div>
+            <div class="row mt-5 mb-5">
+                <div class="col-3">
+                    <div id="about"></div>
+                </div>
+                <div class="col-6">
+                    <div id="weather"></div>
+                </div>
+                <div class="col-3"></div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="text-center text-secondary">Outdoors &copy;2023 Copyright Manny Peterson</div>
+    </footer>
+    <script>
+        $("form").submit(async function (e) {
+            e.preventDefault();
+            zip = $("#zip").val();
+            response = await fetch(`http://api.openweathermap.org/geo/1.0/zip?zip=${zip},US&appid=${key()}`);
+            data = await response.json();
+            lat = data.lat;
+            lon = data.lon;
+            locale = data.name;
+            response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${key()}`);
+            data = await response.json();
+            $("#about").html(`
+                <div class="card border-info mb-3" style="max-width: 18rem;">
+                    <div class="card-header fs-3 fw-bold">Welcome</div>
+                        <div class="card-body">
+                            <p class="card-text">This web application exists purely as software engineering demo for my resume. This web application runs in a Docker container on an AWS EC2 instance and uses HTML5, CSS, Bootstrap, JavaScript, JQuery and REST. Thank you for visiting.</p>
+                            <p class="card-text text-end">Manny Peterson</p>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $("#weather").html(`
+                <div class="text-body fs-1 text-center">
+                    ${locale} Forecast
+                </div>
+                <table class="table table-hover table-sm table-borderless">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center">Day</th>
+                            <th scope="col" class="text-center">Low</th>
+                            <th scope="col" class="text-center">High</th>
+                            <th scope="col" class="text-center">Humidity</th>
+                            <th scope="col" class="text-center">Condition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            `);
+            const options = {
+                weekday: "long",
+                hour: "numeric",
+                minute: "numeric",
+            };
+            for (i = 0; i < data.list.length; i++) {
+                date = new Date(data.list[i].dt * 1000);
+                minTemp = Math.round((data.list[i].main.temp_min - 273.15) * 9 / 5 + 32);
+                maxTemp = Math.round((data.list[i].main.temp_max - 273.15) * 9 / 5 + 32);
+                humidity = data.list[i].main.humidity;
+                condition = data.list[i].weather[0].description;
+                $("#weather tbody").append(`
+                    <tr>
+                        <td class="text-center">${date.toLocaleString("en-US", options)}</td>
+                        <td class="text-center">${minTemp}\xB0F</td>
+                        <td class="text-center">${maxTemp}\xB0F</td>
+                        <td class="text-center">${humidity}%</td>
+                        <td class="text-center">${condition}</td>
+                    </tr>
+                `);
+            }
+        })
+    </script>
+</body>
+
+</html>
